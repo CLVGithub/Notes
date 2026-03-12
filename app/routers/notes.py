@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from models.notes import Note, Sort, NoteWithPassword
+from app.schemas.notes import Note, NoteWithPassword, Sort
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 
@@ -20,17 +20,6 @@ items = [
         tags=["chores", "clothes"],
     ),
 ]
-
-
-@router.get(
-    "/hello",
-    summary="Say hello",
-)
-async def hello():
-    """
-    # Motivation
-    Just your standard hello world response.  It will only return the words Hello World."""
-    return "Hello World"
 
 
 @router.get("/items/{item_id}")
