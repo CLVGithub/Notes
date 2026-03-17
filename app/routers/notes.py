@@ -1,94 +1,96 @@
-from fastapi import APIRouter, HTTPException
-from app.schemas.notes import Note, NoteWithPassword, Sort
+from fastapi import APIRouter, HTTPException, Depends
+from app.schemas.notes import Note, NoteResponse, NoteWithPassword, Sort, Order
+from sqlalchemy.orm import Session
+from typing import List
+
+from app.core.database import SessionLocal
+from app.crud import notes as crud_note
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 
-items = [
-    Note(
-        title="Food",
-        content="I love these kinds of foods",
-        tags=["food", "health", "exercise"],
-    ),
-    Note(
-        title="Study",
-        content="Need to study these chapters.",
-        tags=["university", "books"],
-    ),
-    Note(
-        title="Laundry",
-        content="These are the detergents to use and the method to follow.",
-        tags=["chores", "clothes"],
-    ),
-]
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
-@router.get("/items/{item_id}")
-async def get_item(item_id: int):
-    return items[item_id]
+# create a note
+@router.post("/", response_model=NoteResponse)
+async def create_note(note: Note, db: Session = Depends(get_db)):
+    return crud_note.create_note(db, note)
 
 
-@router.get("/search")
+@router.get("/search", response_model=List[NoteResponse])
 async def search(
-    q: str, sort: Sort = Sort("updated_at"), skip: int = 0, limit: int = 2
+    sort: Sort = Sort("updated_at"),
+    order: Order = Order("ascending"),
+    skip: int = 0,
+    limit: int = 10,
+    db: Session = Depends(get_db),
 ):
-    return {"query": q, "items": items[skip : skip + limit], "sort": sort}
+    """
+    Searches for a range of notes.
+
+    Once sorted according to created_at/updated_at dates in an ascending/descending fashion, will skip an amount of notes from the first row and limit the amount of notes returned.
+    """
+    notes = crud_note.search_notes(db, sort, order, skip, limit)
+    return notes
 
 
-@router.post("/", response_model=Note, tags=["notes"])
-async def post_notes(note: Note):
-    """This endpoint will only post a new note into the database with the data supplied by the request's body"""
-    items.append(Note(title=note.title, content=note.content, tags=note.tags))
-    return Note(title=note.title, content=note.content, tags=note.tags)
+# get a note
+@router.get("/{note_id}")
+async def get_note(note_id: int, db: Session = Depends(get_db)):
+    return crud_note.get_note(db, note_id)
 
 
-@router.get("/", tags=["notes"])
-async def get_notes():
-    return items
+# get all notes
+@router.get("/", response_model=List[NoteResponse])
+async def get_all_notes(db: Session = Depends(get_db)):
+    return crud_note.get_all_notes(db)
 
 
-# class NoteResponse(BaseModel) #  It wanted a NoteResponse model, which just excludes internal fields.  It would set the response_model=NoteResponse field.
-# I chose to use the inheritance model instead as it allows for editors not to complain about wrong return types
-
-
-@router.get("/{id}", tags=["id"])
-async def get_note_without_password(id: int) -> Note:
-    """This will just return the note in the position of the list.
-
-    It is supposed to eventually filter out unwanted attributes in the database in which the note resides."""
-
-    if id >= len(items):
+# update a note
+@router.put("/{note_id}", response_model=NoteResponse)
+async def update_note(note_id: int, note_data: Note, db: Session = Depends(get_db)):
+    note = crud_note.update_note(db, note_id, note_data)
+    if not note:
         raise HTTPException(
-            status_code=404, detail=f"The note with ID {id} does not exist."
-        )
-    return items[id]
-
-
-@router.put("/{id}", tags=["id"])  # , response_model=Note
-async def put_note_without_password(note: NoteWithPassword, id: int) -> Note:
-    """This will return the note sent without the password that was sent to it, to ensure that the password is filtered from the rest of the note.
-
-    This is just to show an example of filtering out fields.
-
-    This just illustrates that when you specify the return type to be a parent class without the password field, the password will be filtered out in the response."""
-
-    if note.password == "wrongpassword":
-        raise HTTPException(
-            status_code=404, detail="You have supplied the wrong password."
-        )
-    if id >= len(items):
-        raise HTTPException(
-            status_code=404, detail=f"The note with ID {id} does not exist."
+            status_code=404, detail=f"The note with id {note_id} does not exist."
         )
 
     return note
 
 
-@router.delete("/{id}", tags=["id"])
-async def delete_note_without_password(id: int) -> Note:
-    if id >= len(items):
+# delete a note
+@router.delete("/delete/{note_id}", response_model=NoteResponse)
+async def delete_note(note_id: int, db: Session = Depends(get_db)):
+    note = crud_note.delete_note(db, note_id)
+    if note:
+        return note
+    else:
         raise HTTPException(
-            status_code=404, detail=f"The note with ID {id} does not exist."
+            status_code=404, detail=f"The note with id {note_id} does not exist."
         )
-    return_note = items[id]
-    items.pop(id)
-    return return_note
+
+
+# @router.put("/", tags=["id"])  # , response_model=Note
+# async def put_note_without_password(note: NoteWithPassword, id: int) -> Note:
+#     """This will return the note sent without the password that was sent to it, to ensure that the password is filtered from the rest of the note.
+#
+#     This is just to show an example of filtering out fields.
+#
+#     This just illustrates that when you specify the return type to be a parent class without the password field, the password will be filtered out in the response."""
+#
+#     if note.password == "wrongpassword":
+#         raise HTTPException(
+#             status_code=404, detail="You have supplied the wrong password."
+#         )
+#     if id >= len(items):
+#         raise HTTPException(
+#             status_code=404, detail=f"The note with ID {id} does not exist."
+#         )
+#
+#     return note

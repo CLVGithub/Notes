@@ -29,6 +29,9 @@ class Note(Base):
         lazy="selectin",
     )
 
+    def __repr__(self) -> str:
+        return f"Note(id={self.id!r}, title={self.title!r}, content={self.content!r}, created_at={self.created_at!r}, updated_at={self.updated_at!r}, pinned={self.pinned}, archived={self.archived})"
+
 
 class Tag(Base):
     __tablename__ = "tags"
@@ -41,6 +44,7 @@ class Tag(Base):
         back_populates="tags",
         lazy="selectin",
     )
+    # TODO: create __repr__ methods
 
 
 note_tags = Table(

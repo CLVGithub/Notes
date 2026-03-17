@@ -19,3 +19,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Notes API", lifespan=lifespan)
 app.include_router(notes_router)
+
+if __name__ == "__main__":
+    print("inside the condition")
