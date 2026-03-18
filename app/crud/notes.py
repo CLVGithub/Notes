@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import select, desc
+from sqlalchemy import select
 from app.models import Note, Tag
 from app.schemas.notes import Sort, Order
 

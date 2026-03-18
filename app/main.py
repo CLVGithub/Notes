@@ -3,12 +3,11 @@ from fastapi import FastAPI
 
 from app.core.database import engine, Base
 from app.routers.notes import router as notes_router
-import app.models
+from app.routers.tags import router as tags_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("CREATING TABLES")
     print(Base.metadata.tables.keys())
     # Startup code
     Base.metadata.create_all(bind=engine)
@@ -19,6 +18,4 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Notes API", lifespan=lifespan)
 app.include_router(notes_router)
-
-if __name__ == "__main__":
-    print("inside the condition")
+app.include_router(tags_router)
