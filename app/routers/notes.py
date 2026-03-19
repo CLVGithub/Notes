@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app.schemas.notes import Note, NoteResponse, NoteWithPassword, Sort, Order
+from app.schemas.notes import NoteCreate, NoteResponse, Sort, Order
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -19,7 +19,7 @@ def get_db():
 
 # create a note
 @router.post("/", response_model=NoteResponse)
-async def create_note(note: Note, db: Session = Depends(get_db)):
+async def create_note(note: NoteCreate, db: Session = Depends(get_db)):
     return crud_note.create_note(db, note)
 
 
@@ -54,7 +54,9 @@ async def get_all_notes(db: Session = Depends(get_db)):
 
 # update a note
 @router.put("/{note_id}", response_model=NoteResponse)
-async def update_note(note_id: int, note_data: Note, db: Session = Depends(get_db)):
+async def update_note(
+    note_id: int, note_data: NoteCreate, db: Session = Depends(get_db)
+):
     note = crud_note.update_note(db, note_id, note_data)
     if not note:
         raise HTTPException(
@@ -65,7 +67,7 @@ async def update_note(note_id: int, note_data: Note, db: Session = Depends(get_d
 
 
 # delete a note
-@router.delete("/delete/{note_id}", response_model=NoteResponse)
+@router.delete("/{note_id}", response_model=NoteResponse)
 async def delete_note(note_id: int, db: Session = Depends(get_db)):
     note = crud_note.delete_note(db, note_id)
     if note:

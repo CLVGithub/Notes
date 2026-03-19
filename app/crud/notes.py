@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from app.models import Note, Tag
+from app.models.notes import Note, Tag, User
 from app.schemas.notes import Sort, Order
 
 SORT_COLUMN_MAP = {
@@ -16,6 +16,7 @@ def create_note(db: Session, note_data):
         content=note_data.content,
         pinned=note_data.pinned,
         archived=note_data.archived,
+        owner=note_data.owner_id,
     )
 
     for tag_name in note_data.tags:
