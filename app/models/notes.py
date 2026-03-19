@@ -29,6 +29,8 @@ class Note(Base):
         lazy="selectin",
     )
 
+    owner: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+
     def __repr__(self) -> str:
         return f"Note(id={self.id!r}, title={self.title!r}, content={self.content!r}, created_at={self.created_at!r}, updated_at={self.updated_at!r}, pinned={self.pinned}, archived={self.archived})"
 
@@ -54,3 +56,9 @@ note_tags = Table(
     Column("tag_id", ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True),
     # TODO: add ondelete "cascade" here.
 )
+
+
+class User(Base):
+    __tablename__ = "users"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(64), nullable=False)
