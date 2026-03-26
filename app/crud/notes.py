@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from app.models.notes import Note, Tag, User
+from app.models.notes import Note, Tag
 from app.schemas.notes import Sort, Order
 
 SORT_COLUMN_MAP = {

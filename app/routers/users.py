@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends
 from app.schemas.users import UserCreate, UserResponse
 from sqlalchemy.orm import Session
 
@@ -17,7 +17,7 @@ def get_db():
 
 
 @router.post("/", response_model=UserResponse)
-async def create_user(user: UserCreate, db: Session = Depends(get_db)):
+async def register_user(user: UserCreate, db: Session = Depends(get_db)):
     response = crud_user.create_user(db, user)
     user_database, created = response
     if not created:
