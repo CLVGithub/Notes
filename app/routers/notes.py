@@ -3,18 +3,11 @@ from app.schemas.notes import NoteCreate, NoteResponse, Sort, Order
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.core.database import SessionLocal
+from app.core.database import get_db
 from app.crud import notes as crud_note
 
+
 router = APIRouter(prefix="/notes", tags=["notes"])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 # create a note

@@ -3,7 +3,7 @@ from app.core.security import verify_password, create_access_token
 from app.schemas.users import UserCreate, UserResponse
 from sqlalchemy.orm import Session
 
-from app.core.database import SessionLocal
+from app.core.database import get_db
 from app.crud import users as crud_user
 
 from fastapi.security import OAuth2PasswordRequestForm
@@ -13,14 +13,6 @@ from fastapi.security import OAuth2PasswordBearer
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 router = APIRouter(prefix="/users", tags=["users"])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.post("/register", response_model=UserResponse)
