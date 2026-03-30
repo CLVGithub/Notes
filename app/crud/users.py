@@ -20,3 +20,10 @@ def create_user(db: Session, user_data):
     db.commit()
     db.refresh(user)
     return user, True
+
+
+def get_user(db: Session, email: str):
+    stmt = select(User).where(User.email == email)
+    user = db.scalars(stmt).first()
+
+    return user
