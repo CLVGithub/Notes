@@ -69,23 +69,3 @@ async def delete_note(note_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=404, detail=f"The note with id {note_id} does not exist."
         )
-
-
-# @router.put("/", tags=["id"])  # , response_model=Note
-# async def put_note_without_password(note: NoteWithPassword, id: int) -> Note:
-#     """This will return the note sent without the password that was sent to it, to ensure that the password is filtered from the rest of the note.
-#
-#     This is just to show an example of filtering out fields.
-#
-#     This just illustrates that when you specify the return type to be a parent class without the password field, the password will be filtered out in the response."""
-#
-#     if note.password == "wrongpassword":
-#         raise HTTPException(
-#             status_code=404, detail="You have supplied the wrong password."
-#         )
-#     if id >= len(items):
-#         raise HTTPException(
-#             status_code=404, detail=f"The note with ID {id} does not exist."
-#         )
-#
-#     return note
