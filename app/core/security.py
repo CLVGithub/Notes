@@ -12,7 +12,7 @@ from app.models.users import User
 
 password_hash = PasswordHash.recommended()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
 SECRET_KEY = "e586452d4da5e85e553048eb11b7df1c85c7eba4fc70e269fee93a4ded6310a2"
 ALGORITHM = "HS256"

@@ -9,14 +9,14 @@ SORT_COLUMN_MAP = {
 }
 
 
-def create_note(db: Session, note_data):
+def create_note(db: Session, note_data, user_id: int):
     # notice the duck typing.  No Pydantic model is imported, Python just cares that the attributes exist on the note_data object
     note = Note(
         title=note_data.title,
         content=note_data.content,
         pinned=note_data.pinned,
         archived=note_data.archived,
-        owner=note_data.owner_id,
+        owner=user_id,
     )
 
     for tag_name in note_data.tags:
@@ -34,25 +34,34 @@ def create_note(db: Session, note_data):
     return note
 
 
-def get_note(db: Session, note_id: int):
-    return db.get(Note, note_id)
-
-
-def get_all_notes(db: Session):
-    return db.query(Note).all()
-
-
-# TODO: remove tags if they are no longer used by any note
-def delete_note(db: Session, note_id: int):
-    note = db.get(Note, note_id)
-    if note:
-        db.delete(note)
-        db.commit()
+def get_note(db: Session, note_id: int, user_id: int):
+    stmt = select(Note).where(Note.owner == user_id).where(Note.id == note_id)
+    note = db.scalars(stmt).first()
     return note
 
 
-def update_note(db: Session, note_id: int, note_data):
-    note = db.get(Note, note_id)
+def get_all_notes(db: Session, user_id: int):
+    stmt = select(Note).where(Note.owner == user_id)
+    notes = db.scalars(stmt).all()
+    return notes
+
+
+# TODO: remove tags if they are no longer used by any note
+def delete_note(db: Session, note_id: int, user_id: int):
+    stmt = select(Note).where(Note.owner == user_id).where(Note.id == note_id)
+    note = db.scalars(stmt).first()
+
+    if note:
+        db.delete(note)
+        db.commit()
+
+    return note
+
+
+def update_note(db: Session, note_id: int, note_data, user_id: int):
+    stmt = select(Note).where(Note.owner == user_id).where(Note.id == note_id)
+    note = db.scalars(stmt).first()
+    # note = db.get(Note, note_id)
 
     if note:
         note.title = note_data.title
@@ -71,13 +80,15 @@ def update_note(db: Session, note_id: int, note_data):
         note.pinned = note_data.pinned
         note.archived = note_data.archived
 
-    db.commit()
+        db.commit()
 
     return note
 
 
-def search_notes(db: Session, sort: Sort, order: Order, skip: int, limit: int):
-    stmt = select(Note).offset(skip).limit(limit)
+def search_notes(
+    db: Session, sort: Sort, order: Order, skip: int, limit: int, user_id: int
+):
+    stmt = select(Note).where(Note.owner == user_id).offset(skip).limit(limit)
     sort_column = SORT_COLUMN_MAP[sort]
 
     if order == Order.ascending:

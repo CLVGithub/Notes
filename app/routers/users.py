@@ -8,9 +8,6 @@ from app.crud import users as crud_user
 
 from fastapi.security import OAuth2PasswordRequestForm
 
-from fastapi.security import OAuth2PasswordBearer
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 router = APIRouter(prefix="/users", tags=["users"])
 

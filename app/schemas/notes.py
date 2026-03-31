@@ -8,7 +8,6 @@ class NoteCreate(BaseModel):
     tags: list[str]
     pinned: bool = False
     archived: bool = False
-    owner_id: int
 
 
 class NoteResponse(BaseModel):
