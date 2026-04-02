@@ -96,5 +96,5 @@ def search_notes(
     else:
         stmt = stmt.order_by(sort_column.desc())
 
-    notes = db.execute(stmt).scalars()
+    notes = db.execute(stmt).scalars().all()
     return notes
