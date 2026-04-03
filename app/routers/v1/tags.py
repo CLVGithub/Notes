@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.crud import tags as crud_tag
 
-router = APIRouter(prefix="/tags", tags=["tags"])
+router = APIRouter(prefix="/api/v1/tags", tags=["tags"])
 
 
 @router.delete("/{tag_id}", response_model=Tag)

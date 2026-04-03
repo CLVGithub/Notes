@@ -9,7 +9,7 @@ from app.crud import notes as crud_note
 from app.models.users import User
 
 
-router = APIRouter(prefix="/notes", tags=["notes"])
+router = APIRouter(prefix="/api/v1/notes", tags=["notes"])
 
 
 # create a note

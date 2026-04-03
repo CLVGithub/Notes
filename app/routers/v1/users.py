@@ -9,7 +9,7 @@ from app.crud import users as crud_user
 from fastapi.security import OAuth2PasswordRequestForm
 
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/api/v1/users", tags=["users"])
 
 
 @router.post("/register", response_model=UserResponse)
