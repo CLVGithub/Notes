@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from enum import Enum
 
 
@@ -14,19 +14,13 @@ class NoteResponse(BaseModel):
     id: int
     title: str
     content: str
-    # FIX:  figure out how to send the tags in the response's body
-    # tags: list[str]
-    # # created_at try to implement to see
     pinned: bool = False
     archived: bool = False
     owner: int
 
-    class Config:
-        from_attributes = True
-
-
-class NoteWithPassword(NoteCreate):
-    password: str
+    # class Config:
+    #     from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Sort(str, Enum):

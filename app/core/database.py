@@ -2,14 +2,20 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-DATABASE_URL = os.getenv("DATABASE_URL")
 
-if DATABASE_URL is None:
-    raise ValueError("DATABASE_URL is not set")
+def get_database_url():
+    DATABASE_URL = os.getenv("DATABASE_URL")
 
-engine = create_engine(DATABASE_URL)
+    if DATABASE_URL is None:
+        raise ValueError("DATABASE_URL is not set")
+    return DATABASE_URL
 
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
+def get_engine():
+    return create_engine(get_database_url())
+
+
+SessionLocal = sessionmaker(bind=get_engine(), autoflush=False, autocommit=False)
 
 
 class Base(DeclarativeBase):
