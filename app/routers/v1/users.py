@@ -29,6 +29,7 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
+    "Supplies the client with a JWT access token if the credentials are valid"
     user = crud_user.get_user(db, form_data.username)
 
     if not user or not verify_password(form_data.password, user.hashed_password):
