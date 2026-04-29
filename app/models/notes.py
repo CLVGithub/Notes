@@ -32,7 +32,7 @@ class Note(Base):
     owner: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
 
     def __repr__(self) -> str:
-        return f"Note(id={self.id!r}, title={self.title!r}, content={self.content!r}, created_at={self.created_at!r}, updated_at={self.updated_at!r}, pinned={self.pinned}, archived={self.archived})"
+        return f"Note(id={self.id!r}, title={self.title!r}, content={self.content!r}, created_at={self.created_at!r}, updated_at={self.updated_at!r}, pinned={self.pinned}, archived={self.archived}), tags={self.tags}"
 
 
 class Tag(Base):

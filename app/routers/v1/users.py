@@ -35,9 +35,6 @@ async def login_for_access_token(
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    print("Found user")
-    print(user)  # this should be in repr form
-
     access_token = create_access_token({"sub": str(user.id)})
 
     return {"access_token": access_token, "token_type": "bearer"}

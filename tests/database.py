@@ -3,11 +3,11 @@ from sqlalchemy.orm import sessionmaker
 from app.core.database import Base
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-if DATABASE_URL is None:
+TEST_DATABASE_URL = os.getenv("DATABASE_URL")
+if TEST_DATABASE_URL is None:
     raise ValueError("DATABASE_URL is not set")
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(TEST_DATABASE_URL)
 
 TestingSessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 

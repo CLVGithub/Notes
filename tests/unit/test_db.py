@@ -15,7 +15,7 @@ def test_create_note(get_test_db):
 
     assert response.title == "title"
     assert response.content == "content"
-    # assert response.tags == ["tag1", "tag2"]
-    # FIX:  How to check the tags
+    tag_names = [tag.name for tag in response.tags]
+    assert tag_names == ["tag1", "tag2"]
     assert response.pinned is False
     assert response.archived is False
