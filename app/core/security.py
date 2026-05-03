@@ -16,8 +16,10 @@ password_hash = PasswordHash.recommended()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/users/login")
 
-# SECRET_KEY = "e586452d4da5e85e553048eb11b7df1c85c7eba4fc70e269fee93a4ded6310a2"
 SECRET_KEY = os.getenv("SECRET_KEY")
+if SECRET_KEY is None:
+    raise ValueError("SECRET_KEY is not set")
+
 ALGORITHM = "HS256"
 DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

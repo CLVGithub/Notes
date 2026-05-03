@@ -10,4 +10,6 @@ COPY . .
 
 COPY entrypoint.sh /app/entrypoint.sh
 
+RUN apt-get update && apt-get install -y vim
+
 ENTRYPOINT ["/app/entrypoint.sh"]

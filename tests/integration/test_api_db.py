@@ -84,3 +84,6 @@ def test_note_manipulations_with_authorization(client):
     assert response.json()["owner"] == 1
     assert response.json()["title"] == "test title"
     assert response.json()["content"] == "test content"
+
+
+# TODO: Run pytest in Docker containers
