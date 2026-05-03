@@ -18,3 +18,5 @@ def create_app():
 
 
 app = create_app()
+
+# TODO: Add logging so that you could easily debug runtime applications through the logs

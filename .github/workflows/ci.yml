@@ -1,0 +1,17 @@
+name: CI Test
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - name: Print message
+        run: echo "CI is working"
+      - name: List files in the repository
+        run: ls -al
