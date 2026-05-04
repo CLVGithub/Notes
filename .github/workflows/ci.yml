@@ -1,4 +1,4 @@
-name: CI Test
+name: CI
 
 on:
   push:
@@ -6,12 +6,33 @@ on:
       - master
 
 jobs:
-  test:
+  build:
+    name: Build Docker image
     runs-on: ubuntu-latest
+    env:
+      REDIS_URL: ${{ secrets.REDIS_URL }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
     steps:
-      - name: Check out repository code
+      - name: Checkout repository code
         uses: actions/checkout@v6
-      - name: Print message
-        run: echo "CI is working"
-      - name: List files in the repository
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.14.4"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: List all the files
         run: ls -al
+      - name: Run pytests
+        run: pytest
+      - name: Build Docker image
+        run: docker build -t my-app .
+      - name: Show docker images
+        run: docker image ls
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - name: Tag image
+        run: docker tag my-app ${{ secrets.DOCKER_USERNAME }}/my-app:latest
+      - name: Push image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/my-app:latest
