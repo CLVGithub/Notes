@@ -25,11 +25,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
 
-  redis:
-    image: redis:8.6.2-alpine
-    container_name: redis
+  nginx:
+    build: nginx/
+    container_name: nginx
+    restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "80:80"
+    depends_on:
+      - api
 
 volumes:
   postgres_data:

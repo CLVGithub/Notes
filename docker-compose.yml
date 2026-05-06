@@ -1,9 +1,6 @@
 services:
-  nginx:
-    build: nginx/
-    container_name: nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    depends_on:
-      - api
+  redis:
+    image: redis:8.6.2-alpine
+    container_name: redis
+    expose:
+      - "6379"

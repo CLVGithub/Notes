@@ -1,0 +1,19 @@
+services:
+  api:
+    image: conraaddocker/notes-app:latest
+    container_name: notes_app
+    expose:
+      - "8000"
+    depends_on:
+      - redis
+    env_file:
+      - .env
+  nginx:
+    image: conraaddocker/nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
