@@ -1,7 +1,7 @@
 services:
   api:
     image: conraaddocker/notes-app:latest
-    container_name: notes_app
+    container_name: notes-app
     expose:
       - "8000"
     depends_on:
