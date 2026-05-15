@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -59,7 +59,23 @@ jobs:
           source: "docker-compose.yml, docker-compose.prod.yml"
           # source: "docker-compose.yml"
           target: "~/"
-      - name: Deploy to EC2
+      - name: Set up docker and docker-compose on EC2
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo apt update
+            sudo apt install docker.io -y
+
+            sudo usermod -aG docker $USER
+
+            # Install Docker Compose v2
+            sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+
+      - name: Deploy docker images to EC2
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.EC2_HOST }}
