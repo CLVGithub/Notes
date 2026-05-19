@@ -4,9 +4,43 @@ on:
   push:
     branches:
       - master
-      - feature/docker-compose-deployment
 
 jobs:
+  aws_architecture:
+    name: AWS cloud architecture
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    defaults:
+      run:
+        working-directory: terraform/
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v6
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.14.9
+          terraform_wrapper: false
+      - name: Terraform format
+        id: fmt
+        run: terraform fmt -check
+      - name: Terraform init
+        run: terraform init
+      - name: Terraform plan
+        run: terraform plan -var="db_pass=${{ secrets.DB_PASS }}"
+      - name: Terraform apply
+        run: terraform apply -auto-approve -var="db_pass=${{ secrets.DB_PASS }}"
+      - name: Terraform outputs
+        run: terraform output -json > tf_outputs.json
+      - name: Upload Terraform outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: tf-outputs
+          # TODO: isn't there a better method than showing the absolute path
+          path: /home/runner/work/Notes/Notes/terraform/tf_outputs.json
+
   test:
     name: Run tests
     runs-on: ubuntu-latest
@@ -42,18 +76,30 @@ jobs:
         run: docker push ${{ secrets.DOCKER_USERNAME }}/notes-app:latest
       - name: Push image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/nginx:latest
-
   deploy:
     name: Deploy to EC2
-    needs: build
+    needs: [build, aws_architecture]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v6
+      - name: Download Terraform outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: tf-outputs
+      - name: Extract Terraform outputs
+        run: |
+          echo "EC2_HOST=$(jq -r '.instance_ip_addr.value' tf_outputs.json)" >> $GITHUB_ENV
+          # DATABASE_URL=$(jq -r '.db_instance_addr.value' tf_outputs.json)
+      - name: DISPLAY ENVIRONMENT VARIABLES
+        run: |
+          ls -al
+          cat tf_outputs.json
+          echo $EC2_HOST
       - name: Copy compose file
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ env.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "docker-compose.yml, docker-compose.prod.yml"
@@ -62,7 +108,7 @@ jobs:
       - name: Set up docker and docker-compose on EC2
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ env.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
@@ -75,11 +121,28 @@ jobs:
             sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
 
+      - name: Create .env file
+        run: |
+          # echo "DATABASE_URL=$DATABASE_URL" >> .env
+          # TODO: extract db_instance_address
+          echo "DATABASE_URL=postgresql+psycopg://postgres:postgres@db:5432/notes_db" >> .env
+          echo "SECRET_KEY="e586452d4da5e85e553048eb11b7df1c85c7eba4fc70e269fee93a4ded6310a2"" >> .env
+          echo "REDIS_URL=redis://redis:6379" >> .env
+      - name: Copy .env file to EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: ".env"
+          # source: "docker-compose.yml"
+          target: "~/"
       - name: Deploy docker images to EC2
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ env.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
+          # username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             docker pull conraaddocker/notes-app:latest
