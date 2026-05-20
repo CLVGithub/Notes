@@ -2,6 +2,6 @@ output "instance_ip_addr" {
   value = aws_instance.instance.public_ip
 }
 
-# output "db_instance_addr" {
-#   value = aws_db_instance.db_instance.address
-# }
+output "db_instance_addr" {
+  value = aws_db_instance.db_instance.address
+}

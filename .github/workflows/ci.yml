@@ -59,6 +59,7 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run pytests
         run: pytest
+
   build:
     name: Build Docker images
     needs: test
@@ -76,6 +77,7 @@ jobs:
         run: docker push ${{ secrets.DOCKER_USERNAME }}/notes-app:latest
       - name: Push image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/nginx:latest
+
   deploy:
     name: Deploy to EC2
     needs: [build, aws_architecture]
@@ -90,12 +92,7 @@ jobs:
       - name: Extract Terraform outputs
         run: |
           echo "EC2_HOST=$(jq -r '.instance_ip_addr.value' tf_outputs.json)" >> $GITHUB_ENV
-          # DATABASE_URL=$(jq -r '.db_instance_addr.value' tf_outputs.json)
-      - name: DISPLAY ENVIRONMENT VARIABLES
-        run: |
-          ls -al
-          cat tf_outputs.json
-          echo $EC2_HOST
+          echo "DATABASE_URL=$(jq -r '.db_instance_addr.value' tf_outputs.json)" >> $GITHUB_ENV
       - name: Copy compose file
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -103,7 +100,6 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "docker-compose.yml, docker-compose.prod.yml"
-          # source: "docker-compose.yml"
           target: "~/"
       - name: Set up docker and docker-compose on EC2
         uses: appleboy/ssh-action@v0.1.6
@@ -123,10 +119,8 @@ jobs:
 
       - name: Create .env file
         run: |
-          # echo "DATABASE_URL=$DATABASE_URL" >> .env
-          # TODO: extract db_instance_address
-          echo "DATABASE_URL=postgresql+psycopg://postgres:postgres@db:5432/notes_db" >> .env
-          echo "SECRET_KEY="e586452d4da5e85e553048eb11b7df1c85c7eba4fc70e269fee93a4ded6310a2"" >> .env
+          echo "DATABASE_URL=postgresql+psycopg://${{ secrets.DB_USER }}:${{ secrets.DB_PASS }}@$DATABASE_URL:5432/notes_db" >> .env
+          echo "SECRET_KEY="${{ secrets.SECRET_KEY }}"" >> .env
           echo "REDIS_URL=redis://redis:6379" >> .env
       - name: Copy .env file to EC2
         uses: appleboy/scp-action@v0.1.4
@@ -135,14 +129,12 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: ".env"
-          # source: "docker-compose.yml"
           target: "~/"
       - name: Deploy docker images to EC2
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ env.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          # username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             docker pull conraaddocker/notes-app:latest
@@ -150,5 +142,5 @@ jobs:
 
             docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
             docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-
-            # TODO: set up nginx as well.  Most probably going to use docker-compose to set up nginx in a container alongside the fast-api container
+            # clean up configuration files
+            rm .env docker-compose.yml docker-compose.prod.yml
