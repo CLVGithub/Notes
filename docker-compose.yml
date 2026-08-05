@@ -4,3 +4,4 @@ services:
     container_name: redis
     expose:
       - "6379"
+    restart: unless-stopped
